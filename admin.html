@@ -1,1 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clientiment | Dashboard</title>
+  <style>
+    :root {
+      --blue: #0f4fb3;
+      --blue-dark: #10346b;
+      --teal: #35d0c7;
+      --bg: #eef4f8;
+      --text: #1f2a37;
+      --muted: #6b7280;
+      --card: #ffffff;
+      --border: #dbe5ef;
+      --red-bg: #fff1f2;
+      --red-text: #991b1b;
+      --yellow-bg: #fffbeb;
+      --yellow-text: #92400e;
+      --green-bg: #ecfdf5;
+      --green-text: #065f46;
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, rgba(16,52,107,1), rgba(53,208,199,0.92));
+      color: white;
+      padding: 22px 18px;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .topbar p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .summary-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .summary-card .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .summary-card .value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--blue-dark);
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .controls select,
+    .controls button {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .controls button {
+      background: var(--blue);
+      color: white;
+      border: none;
+    }
+
+    .feedback-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .feedback-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .feedback-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rating-badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .rating-low {
+      background: var(--red-bg);
+      color: var(--red-text);
+    }
+
+    .rating-mid {
+      background: var(--yellow-bg);
+      color: var(--yellow-text);
+    }
+
+    .rating-high {
+      background: var(--green-bg);
+      color: var(--green-text);
+    }
+
+    .feedback-date {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 12px;
+    }
+
+    .tag {
+      background: #eef7ff;
+      color: var(--blue-dark);
+      border: 1px solid #d6e8ff;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .comment {
+      font-size: 15px;
+      line-height: 1.5;
+      margin-top: 6px;
+      color: var(--text);
+    }
+
+    .contact {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .empty-state,
+    .loading-state {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .debug-banner {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      z-index: 99999;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: white;
+      word-break: break-word;
+    }
+
+    .debug-error {
+      background: #b91c1c;
+    }
+
+    .debug-promise {
+      background: #7f1d1d;
+    }
+
+    @media (max-width: 800px) {
+      .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <h1>Clientiment Dashboard</h1>
+      <p>Customer Feedback & Reputation Monitoring</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="label">Total Feedback</div>
+        <div class="value" id="totalCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Negative (1–2)</div>
+        <div class="value" id="negativeCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Neutral (3)</div>
+        <div class="value" id="neutralCount">0</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Positive (4–5)</div>
+        <div class="value" id="positiveCount">0</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <select id="ratingFilter">
+        <option value="all">All Ratings</option>
+        <option value="negative">Negative (1–2)</option>
+        <option value="neutral">Neutral (3)</option>
+        <option value="positive">Positive (4–5)</option>
+      </select>
+
+      <button id="refreshBtn" type="button">Refresh</button>
+    </div>
+
+    <div id="feedbackContainer">
+      <div class="loading-state">Loading feedback...</div>
+    </div>
+  </div>
+
+  <script>
+    function appendDebugBanner(message, className) {
+      const el = document.createElement("div");
+      el.className = `debug-banner ${className}`;
+      el.textContent = message;
+      document.body.appendChild(el);
+    }
+
+    window.onerror = function (msg, url, line, col) {
+      appendDebugBanner(`ERROR: ${msg} (line ${line}, col ${col})`, "debug-error");
+    };
+
+    window.onunhandledrejection = function (event) {
+      const reason = event && event.reason ? String(event.reason) : "Unknown promise rejection";
+      appendDebugBanner(`PROMISE ERROR: ${reason}`, "debug-promise");
+    };
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyADlG3ogY7IdDqZ6fF4wTunqOhD8-lJUag",
+      authDomain: "clientiment.firebaseapp.com",
+      projectId: "clientiment",
+      storageBucket: "clientiment.firebasestorage.app",
+      messagingSenderId: "317722818403",
+      appId: "1:317722818403:web:0fd8f223a677b539008556"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const feedbackContainer = document.getElementById("feedbackContainer");
+    const ratingFilter = document.getElementById("ratingFilter");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    const totalCount = document.getElementById("totalCount");
+    const negativeCount = document.getElementById("negativeCount");
+    const neutralCount = document.getElementById("neutralCount");
+    const positiveCount = document.getElementById("positiveCount");
+
+    let allFeedback = [];
+
+    function getRatingClass(rating) {
+      if (rating <= 2) return "rating-low";
+      if (rating === 3) return "rating-mid";
+      return "rating-high";
+    }
+
+    function formatDate(timestamp) {
+      if (!timestamp || !timestamp.toDate) return "Unknown date";
+      const date = timestamp.toDate();
+      return date.toLocaleString();
+    }
+
+    function updateSummary(items) {
+      totalCount.textContent = items.length;
+      negativeCount.textContent = items.filter(item => item.rating <= 2).length;
+      neutralCount.textContent = items.filter(item => item.rating === 3).length;
+      positiveCount.textContent = items.filter(item => item.rating >= 4).length;
+    }
+
+    function applyFilter(items) {
+      const filter = ratingFilter.value;
+
+      if (filter === "negative") {
+        return items.filter(item => item.rating <= 2);
+      }
+
+      if (filter === "neutral") {
+        return items.filter(item => item.rating === 3);
+      }
+
+      if (filter === "positive") {
+        return items.filter(item => item.rating >= 4);
+      }
+
+      return items;
+    }
+
+    function renderFeedback(items) {
+      const filtered = applyFilter(items);
+
+      if (!filtered.length) {
+        feedbackContainer.innerHTML = `
+          <div class="empty-state">
+            No feedback found for the selected filter.
+          </div>
+        `;
+        return;
+      }
+
+      feedbackContainer.innerHTML = `
+        <div class="feedback-list">
+          ${filtered.map(item => `
+            <div class="feedback-card">
+              <div class="feedback-top">
+                <span class="rating-badge ${getRatingClass(item.rating)}">
+                  ${"★".repeat(item.rating)} (${item.rating}/5)
+                </span>
+                <span class="feedback-date">${formatDate(item.createdAt)}</span>
+              </div>
+
+              <div class="tags">
+                ${(item.tags && item.tags.length)
+                  ? item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")
+                  : `<span class="tag">No tags</span>`
+                }
+              </div>
+
+              <div class="comment">
+                ${item.comment && item.comment.trim()
+                  ? item.comment
+                  : "<em>No comment provided.</em>"
+                }
+              </div>
+
+              <div class="contact">
+                ${item.contactRequested
+                  ? `Requested contact: ${item.contact || "No contact detail provided"}`
+                  : "No contact requested"
+                }
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    async function loadFeedback() {
+      feedbackContainer.innerHTML = `<div class="loading-state">Loading feedback...</div>`;
+
+      try {
+        const q = query(collection(db, "feedback"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+
+        allFeedback = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        updateSummary(allFeedback);
+        renderFeedback(allFeedback);
+      } catch (error) {
+        console.error("Dashboard load error:", error);
+        feedbackContainer.innerHTML = `
+          <div class="empty-state">
+            Failed to load feedback. Check Firestore rules or indexes.
+          </div>
+        `;
+      }
+    }
+
+    ratingFilter.addEventListener("change", () => {
+      renderFeedback(allFeedback);
+    });
+
+    refreshBtn.addEventListener("click", () => {
+      loadFeedback();
+    });
+
+    loadFeedback();
+  </script>
+</body>
+</html>
