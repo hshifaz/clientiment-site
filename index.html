@@ -410,44 +410,169 @@ const app = initializeApp(firebaseConfig);
       }
     });
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      formMessage.innerHTML = "";
+  const firebaseConfig = {
+    apiKey: "AIzaSyADlG3ogY7IdDqZ6fF4wTunqOhD8-lJUag",
+    authDomain: "clientiment.firebaseapp.com",
+    projectId: "clientiment",
+    storageBucket: "clientiment.firebasestorage.app",
+    messagingSenderId: "317722818403",
+    appId: "1:317722818403:web:0fd8f223a677b539008556"
+  };
 
-      if (!selectedRating) {
-        formMessage.innerHTML = '<div class="message error">Please select a rating first.</div>';
-        return;
-      }
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-      if (contactToggle.checked && !contactInput.value.trim()) {
-        formMessage.innerHTML = '<div class="message error">Please enter your phone or email so we can contact you.</div>';
-        return;
-      }
+  const negativeOptions = ["Service", "Waiting Time", "Staff", "Price", "Other"];
+  const positiveOptions = ["Service", "Speed", "Staff", "Quality", "Cleanliness"];
 
-      const payload = {
-        rating: selectedRating,
-        tags: selectedTags,
-        comment: document.getElementById("comment").value.trim(),
-        contactRequested: contactToggle.checked,
-        contact: contactInput.value.trim(),
-        submittedAt: new Date().toISOString()
-      };
+  const stars = document.querySelectorAll(".star-btn");
+  const ratingNote = document.getElementById("ratingNote");
+  const issueSection = document.getElementById("issueSection");
+  const issueTitle = document.getElementById("issueTitle");
+  const chipGrid = document.getElementById("chipGrid");
+  const contactToggle = document.getElementById("contactToggle");
+  const contactSection = document.getElementById("contactSection");
+  const contactInput = document.getElementById("contact");
+  const submitBtn = document.getElementById("submitBtn");
+  const form = document.getElementById("feedbackForm");
+  const formMessage = document.getElementById("formMessage");
+  const commentInput = document.getElementById("comment");
 
-      console.log("Feedback payload:", payload);
+  let selectedRating = 0;
+  let selectedTags = [];
+
+  function renderChips(options) {
+    chipGrid.innerHTML = "";
+    selectedTags = [];
+
+    options.forEach(option => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "chip";
+      btn.textContent = option;
+
+      btn.addEventListener("click", () => {
+        const alreadySelected = selectedTags.includes(option);
+
+        if (alreadySelected) {
+          selectedTags = selectedTags.filter(tag => tag !== option);
+          btn.classList.remove("selected");
+        } else {
+          selectedTags.push(option);
+          btn.classList.add("selected");
+        }
+      });
+
+      chipGrid.appendChild(btn);
+    });
+  }
+
+  function updateRatingUI(rating) {
+    stars.forEach(star => {
+      const starRating = Number(star.dataset.rating);
+      star.classList.toggle("active", starRating <= rating);
+    });
+
+    if (rating <= 2) {
+      ratingNote.textContent = "We’re sorry to hear that.";
+      issueTitle.textContent = "What went wrong?";
+      renderChips(negativeOptions);
+      issueSection.classList.remove("hidden");
+    } else if (rating === 3) {
+      ratingNote.textContent = "Thanks — help us improve.";
+      issueTitle.textContent = "What could be better?";
+      renderChips(negativeOptions);
+      issueSection.classList.remove("hidden");
+    } else {
+      ratingNote.textContent = "Great — thank you for the feedback.";
+      issueTitle.textContent = "What did you like?";
+      renderChips(positiveOptions);
+      issueSection.classList.remove("hidden");
+    }
+
+    submitBtn.disabled = false;
+    formMessage.innerHTML = "";
+  }
+
+  function resetForm() {
+    form.reset();
+    selectedRating = 0;
+    selectedTags = [];
+    issueSection.classList.add("hidden");
+    contactSection.classList.add("hidden");
+    submitBtn.disabled = true;
+    ratingNote.textContent = "Tap a rating to continue";
+    stars.forEach(star => star.classList.remove("active"));
+    chipGrid.innerHTML = "";
+  }
+
+  stars.forEach(star => {
+    star.addEventListener("click", () => {
+      selectedRating = Number(star.dataset.rating);
+      updateRatingUI(selectedRating);
+    });
+  });
+
+  contactToggle.addEventListener("change", () => {
+    contactSection.classList.toggle("hidden", !contactToggle.checked);
+    if (!contactToggle.checked) {
+      contactInput.value = "";
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    formMessage.innerHTML = "";
+
+    if (!selectedRating) {
+      formMessage.innerHTML = '<div class="message error">Please select a rating first.</div>';
+      return;
+    }
+
+    if (contactToggle.checked && !contactInput.value.trim()) {
+      formMessage.innerHTML = '<div class="message error">Please enter your phone or email so we can contact you.</div>';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
+    const payload = {
+      rating: selectedRating,
+      tags: selectedTags,
+      comment: commentInput.value.trim(),
+      contactRequested: contactToggle.checked,
+      contact: contactInput.value.trim(),
+      businessId: "default-business",
+      source: "public-feedback-page",
+      createdAt: serverTimestamp()
+    };
+
+    try {
+      await addDoc(collection(db, "feedback"), payload);
 
       formMessage.innerHTML =
         '<div class="message success">Thank you. Your feedback has been submitted.</div>';
 
-      form.reset();
-      selectedRating = 0;
-      selectedTags = [];
-      issueSection.classList.add("hidden");
-      submitBtn.disabled = true;
-      ratingNote.textContent = "Tap a rating to continue";
-      stars.forEach(star => star.classList.remove("active"));
-      contactSection.classList.add("hidden");
-    });
-  </script>
+      resetForm();
+    } catch (error) {
+      console.error("Firestore error:", error);
+      formMessage.innerHTML =
+        '<div class="message error">Submission failed. Please try again.</div>';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Feedback";
+    }
+  });
+</script>
 </body>
 </html>
