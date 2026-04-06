@@ -12,7 +12,6 @@
       --bg: #eef4f8;
       --text: #1f2a37;
       --muted: #6b7280;
-      --card: #ffffff;
       --border: #dbe5ef;
       --red-bg: #fff1f2;
       --red-text: #991b1b;
@@ -21,48 +20,38 @@
       --green-bg: #ecfdf5;
       --green-text: #065f46;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
-
     .topbar {
       background: linear-gradient(135deg, rgba(16,52,107,1), rgba(53,208,199,0.92));
       color: white;
       padding: 22px 18px;
     }
-
     .topbar h1 {
       margin: 0;
       font-size: 24px;
     }
-
     .topbar p {
       margin: 6px 0 0;
       font-size: 14px;
       opacity: 0.9;
     }
-
     .container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 18px;
     }
-
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 14px;
       margin-bottom: 18px;
     }
-
     .summary-card {
       background: white;
       border: 1px solid var(--border);
@@ -70,26 +59,23 @@
       padding: 16px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
-
     .summary-card .label {
       color: var(--muted);
       font-size: 13px;
       margin-bottom: 6px;
     }
-
     .summary-card .value {
       font-size: 26px;
       font-weight: 700;
       color: var(--blue-dark);
     }
-
     .controls {
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
       margin-bottom: 16px;
+      align-items: center;
     }
-
     .controls select,
     .controls button {
       border: 1px solid var(--border);
@@ -99,18 +85,15 @@
       font-size: 14px;
       cursor: pointer;
     }
-
     .controls button {
       background: var(--blue);
       color: white;
       border: none;
     }
-
     .feedback-list {
       display: grid;
       gap: 14px;
     }
-
     .feedback-card {
       background: white;
       border: 1px solid var(--border);
@@ -118,7 +101,6 @@
       padding: 16px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
-
     .feedback-top {
       display: flex;
       justify-content: space-between;
@@ -127,7 +109,6 @@
       margin-bottom: 12px;
       flex-wrap: wrap;
     }
-
     .rating-badge {
       display: inline-block;
       border-radius: 999px;
@@ -135,34 +116,28 @@
       font-weight: 700;
       font-size: 14px;
     }
-
     .rating-low {
       background: var(--red-bg);
       color: var(--red-text);
     }
-
     .rating-mid {
       background: var(--yellow-bg);
       color: var(--yellow-text);
     }
-
     .rating-high {
       background: var(--green-bg);
       color: var(--green-text);
     }
-
     .feedback-date {
       font-size: 13px;
       color: var(--muted);
     }
-
     .tags {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       margin: 10px 0 12px;
     }
-
     .tag {
       background: #eef7ff;
       color: var(--blue-dark);
@@ -172,20 +147,17 @@
       font-size: 12px;
       font-weight: 600;
     }
-
     .comment {
       font-size: 15px;
       line-height: 1.5;
       margin-top: 6px;
       color: var(--text);
     }
-
     .contact {
       margin-top: 12px;
       font-size: 13px;
       color: var(--muted);
     }
-
     .empty-state,
     .loading-state {
       background: white;
@@ -195,7 +167,15 @@
       text-align: center;
       color: var(--muted);
     }
-
+    .biz-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      color: var(--blue-dark);
+      font-weight: 600;
+    }
     .debug-banner {
       position: fixed;
       left: 0;
@@ -207,25 +187,13 @@
       color: white;
       word-break: break-word;
     }
-
-    .debug-error {
-      background: #b91c1c;
-    }
-
-    .debug-promise {
-      background: #7f1d1d;
-    }
-
+    .debug-error { background: #b91c1c; }
+    .debug-promise { background: #7f1d1d; }
     @media (max-width: 800px) {
-      .summary-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
     }
-
     @media (max-width: 520px) {
-      .summary-grid {
-        grid-template-columns: 1fr;
-      }
+      .summary-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -238,6 +206,8 @@
   </div>
 
   <div class="container">
+    <div class="biz-box" id="bizBox"></div>
+
     <div class="summary-grid">
       <div class="summary-card">
         <div class="label">Total Feedback</div>
@@ -298,6 +268,7 @@
       collection,
       getDocs,
       query,
+      where,
       orderBy
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -312,6 +283,12 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const businessId = (urlParams.get("b") || "default-business").trim();
+    const businessName = (urlParams.get("name") || businessId).trim();
+
+    document.getElementById("bizBox").textContent = `Dashboard for: ${businessName} (${businessId})`;
 
     const feedbackContainer = document.getElementById("feedbackContainer");
     const ratingFilter = document.getElementById("ratingFilter");
@@ -332,8 +309,7 @@
 
     function formatDate(timestamp) {
       if (!timestamp || !timestamp.toDate) return "Unknown date";
-      const date = timestamp.toDate();
-      return date.toLocaleString();
+      return timestamp.toDate().toLocaleString();
     }
 
     function updateSummary(items) {
@@ -345,19 +321,9 @@
 
     function applyFilter(items) {
       const filter = ratingFilter.value;
-
-      if (filter === "negative") {
-        return items.filter(item => item.rating <= 2);
-      }
-
-      if (filter === "neutral") {
-        return items.filter(item => item.rating === 3);
-      }
-
-      if (filter === "positive") {
-        return items.filter(item => item.rating >= 4);
-      }
-
+      if (filter === "negative") return items.filter(item => item.rating <= 2);
+      if (filter === "neutral") return items.filter(item => item.rating === 3);
+      if (filter === "positive") return items.filter(item => item.rating >= 4);
       return items;
     }
 
@@ -414,7 +380,12 @@
       feedbackContainer.innerHTML = `<div class="loading-state">Loading feedback...</div>`;
 
       try {
-        const q = query(collection(db, "feedback"), orderBy("createdAt", "desc"));
+        const q = query(
+          collection(db, "feedback"),
+          where("businessId", "==", businessId),
+          orderBy("createdAt", "desc")
+        );
+
         const snapshot = await getDocs(q);
 
         allFeedback = snapshot.docs.map(doc => ({
@@ -428,19 +399,14 @@
         console.error("Dashboard load error:", error);
         feedbackContainer.innerHTML = `
           <div class="empty-state">
-            Failed to load feedback. Check Firestore rules or indexes.
+            Failed to load feedback. You may need a Firestore index for businessId + createdAt.
           </div>
         `;
       }
     }
 
-    ratingFilter.addEventListener("change", () => {
-      renderFeedback(allFeedback);
-    });
-
-    refreshBtn.addEventListener("click", () => {
-      loadFeedback();
-    });
+    ratingFilter.addEventListener("change", () => renderFeedback(allFeedback));
+    refreshBtn.addEventListener("click", loadFeedback);
 
     loadFeedback();
   </script>
