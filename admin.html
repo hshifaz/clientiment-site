@@ -198,6 +198,33 @@
   </style>
 </head>
 <body>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+
+  const businessId = urlParams.get("b") || "default-business";
+  const password = urlParams.get("p");
+
+  const accessMap = {
+    "demo": "admin123",
+    "default-business": "admin123",
+    "cafe123": "cafe123pass"
+  };
+
+  const requiredPassword = accessMap[businessId];
+
+  if (!requiredPassword || password !== requiredPassword) {
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;">
+        <div style="text-align:center;">
+          <h2>Access Denied</h2>
+          <p>Invalid or missing password</p>
+        </div>
+      </div>
+    `;
+    throw new Error("Unauthorized access");
+  }
+</script>
+  
   <div class="topbar">
     <div class="container">
       <h1>Clientiment Dashboard</h1>
