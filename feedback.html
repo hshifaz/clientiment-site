@@ -15,6 +15,28 @@
       --success: #10b981;
     }
     * { box-sizing: border-box; }
+
+   @media (max-width: 480px) {
+  .card {
+    padding: 20px 14px 16px;
+  }
+
+  .question {
+    font-size: 20px;
+  }
+
+  .stars {
+    gap: 6px;
+  }
+
+  .star-btn {
+    font-size: 22px;
+  }
+
+  .logo-feedback {
+    width: 120px; /* your current 200px is too big */
+  }
+} 
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
@@ -66,22 +88,21 @@
       margin: 8px 0 16px;
     }
     .stars {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
     .star-btn {
-      border: 2px solid var(--border);
-      background: #fff;
-      border-radius: 16px;
-      width: 56px;
-      height: 56px;
-      font-size: 26px;
-      cursor: pointer;
-      transition: 0.18s ease;
-    }
+  border: 2px solid var(--border);
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  font-size: 24px;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
     .star-btn:hover, .star-btn.active {
       border-color: var(--teal);
       background: #ecfffd;
@@ -196,7 +217,7 @@
     }
 
     .logo-feedback {
-      width: 200px;
+      width: 140px;
       margin: 0 auto 12px;
     }
   </style>
